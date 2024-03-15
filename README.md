@@ -97,15 +97,15 @@ Dari tabel di atas, terlihat bahwa kolom rating memiliki nilai minimum -1, yang 
 
 ### Exploratory Data Analysis (EDA)
 
-xxx
+![image1](https://github.com/hiseulgi/anime-recommendation-system/assets/73764468/9d479c28-6f64-4078-8bdd-ab012732f14b)
 
 Gambar 1. Distribusi rata-rata rating dan user rating
 
-xxx
+![image2](https://github.com/hiseulgi/anime-recommendation-system/assets/73764468/33af477f-b813-426e-a76a-7ba665a97528)
 
 Gambar 2. Distribusi kategori anime berdasarkan type
 
-xxx
+![image3](https://github.com/hiseulgi/anime-recommendation-system/assets/73764468/653bfa0c-128d-45ca-b156-1511ffd53e5f)
 
 Gambar 3. Wordcloud genre anime
 
@@ -186,9 +186,7 @@ Sistem rekomendasi kemudian mengurutkan judul-judul anime berdasarkan nilai *cos
 
 Berikut adalah rumus untuk menghitung *cosine similarity* antara dua vektor $A$ dan $B$:
 
-$$ \text{Cosine Similarity} = \frac{\mathbf{A} \cdot \mathbf{B}}{\|\mathbf{A}\| \|\mathbf{B}\|}
-
-= \frac{\sum_{i=1}^{n} A_i B_i}{\sqrt{\sum_{i=1}^{n} A_i^2} \sqrt{\sum_{i=1}^{n} B_i^2}} $$
+$$ \text{Cosine Similarity} = \frac{\mathbf{A} \cdot \mathbf{B}}{\|\mathbf{A}\| \|\mathbf{B}\|} = \frac{\sum_{i=1}^{n} A_i B_i}{\sqrt{\sum_{i=1}^{n} A_i^2} \sqrt{\sum_{i=1}^{n} B_i^2}} $$
 
 Dimana:
 - $\mathbf{A} \cdot \mathbf{B}$ adalah hasil perkalian titik antara vektor $A$ dan $B$.
