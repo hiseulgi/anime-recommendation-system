@@ -121,11 +121,11 @@ Berikut adalah beberapa informasi yang dapat diambil dari hasil EDA:
 ### Table `anime.csv`
 
 Berikut adalah tahapan data preparation yang dilakukan pada tabel `anime.csv`:
-1. Penghapusan Data yang Tidak Valid
+1. Penghapusan Data Tidak Valid:
    1. Data dengan missing value dihapus karena dapat menyebabkan bias dalam model.
    2. Data dengan duplicate value dihapus karena redundan dan dapat memengaruhi performa model.
    3. Nilai Unknown pada kolom episodes dihapus karena tidak valid dan dapat mengganggu proses modeling.
-2. Normalisasi Data
+2. Normalisasi Data:
    1. Nilai pada kolom genre dibersihkan dari tanda koma dan diubah menjadi huruf kecil untuk konsistensi dan memudahkan pengolahan data.
    2. Kolom type diubah menjadi huruf kecil untuk konsistensi.
 3. Encoding Data: Kolom episodes, rating, dan members dienkode untuk mengubah nilai numerik menjadi kategori baru. Hal ini membantu model mempelajari hubungan antar kategori dan meningkatkan akurasi prediksi.
@@ -134,18 +134,90 @@ Berikut adalah tahapan data preparation yang dilakukan pada tabel `anime.csv`:
 
 ### Table `rating.csv`
 
-TODO: next
+Berikut adalah tahapan data preparation yang dilakukan pada tabel `rating.csv`:
+1. Penghapusan Data Tidak Valid:
+   1. Data dengan nilai rating -1 dihapus karena tidak valid dan dapat mengganggu proses modeling.
+   2. Data dengan duplicate value dihapus karena redundan dan dapat memengaruhi performa model.
+2. Limitasi Data: Data dibatasi hanya untuk pengguna yang telah melakukan minimal 500 rating. Hal ini dilakukan untuk memastikan keakuratan rekomendasi dan mengurangi komputasi yang berlebihan. Pengguna dengan rating minimal 500 diasumsikan memiliki preferensi yang lebih jelas dan datanya lebih reliable untuk membangun model.
+3. Merge Data: Tabel rating.csv di-merge dengan tabel anime.csv berdasarkan kolom anime_id untuk menggabungkan informasi rating dan informasi anime menjadi satu tabel. Penggabungan ini bertujuan agar informasi anime dapat dilihat bersamaan dengan rating yang diberikan oleh pengguna.
+4. Penataan Data dengan Pivot Table: Tabel hasil merge diubah menjadi pivot table dengan index anime_name dan kolom user_id. Hal ini memudahkan proses modeling dan memastikan keunikan setiap baris data. Pivot table meringkas data rating untuk setiap kombinasi anime_name dan user_id, yang menjadi input model untuk menghasilkan rekomendasi.
 
-**Rubrik/Kriteria Tambahan (Opsional)**: 
-- Menjelaskan proses data preparation yang dilakukan
-- Menjelaskan alasan mengapa diperlukan tahapan data preparation tersebut.
 
 ## Modeling
-Tahapan ini membahas mengenai model sisten rekomendasi yang Anda buat untuk menyelesaikan permasalahan. Sajikan top-N recommendation sebagai output.
 
-**Rubrik/Kriteria Tambahan (Opsional)**: 
-- Menyajikan dua solusi rekomendasi dengan algoritma yang berbeda.
-- Menjelaskan kelebihan dan kekurangan dari solusi/pendekatan yang dipilih.
+### Content-Based Filtering
+
+TODO: gambar ilustrasi content-based filtering dengan tambahan ilustrasi anime
+
+Content-based filtering merupakan teknik yang digunakan dalam sistem rekomendasi untuk menganalisis karakteristik atau atribut item (dalam hal ini, anime) dan memberikan rekomendasi berdasarkan kesamaan karakteristik tersebut. Pendekatan ini sangat berguna ketika data pengguna yang tersedia terbatas, atau ketika terdapat item baru yang dimasukkan ke dalam sistem.
+
+Salah satu metode yang umum digunakan dalam content-based filtering untuk sistem rekomendasi anime adalah kombinasi dari TF-IDF (Term Frequency-Inverse Document Frequency) dan cosine similarity.
+
+#### TF-IDF (Term Frequency-Inverse Document Frequency)
+
+TF-IDF adalah sebuah ukuran statistik yang mengevaluasi pentingnya sebuah kata atau *term* dalam sebuah dokumen atau korpus. Ukuran ini mempertimbangkan frekuensi *term* dalam dokumen tertentu (Term Frequency, TF) dan kebalikan dari jumlah dokumen yang mengandung *term* tersebut (Inverse Document Frequency, IDF).
+
+Dalam konteks sistem rekomendasi anime di proyek ini, "dokumen" dapat berupa gabungan dari beberapa variabel, seperti genre, type, episodes, rating, dan members yang terkait dengan setiap judul anime. Skor TF-IDF dihitung untuk setiap *term* dalam deskripsi anime, sehingga sistem dapat mengidentifikasi *term* yang paling relevan dan diskriminatif untuk anime tertentu.
+
+Berikut adalah rumus untuk menghitung skor TF-IDF:
+
+$$ \text{TF-IDF}(t, d, D) = \text{TF}(t, d) \times \text{IDF}(t, D) $$
+
+Dimana:
+- $\text{TF}(t, d)$ adalah frekuensi kemunculan term $t$ dalam dokumen $d$.
+- $\text{IDF}(t, D)$ adalah kebalikan dari jumlah dokumen dalam korpus $D$ yang mengandung term $t$.
+
+Kemudian rumus untuk menghitung skor IDF adalah sebagai berikut:
+
+$$ \text{IDF}(t, D) = \log\left(\frac{N}{DF(t, D)}\right) $$
+
+Dimana:
+- $N$ adalah jumlah total dokumen dalam korpus $D$.
+- $DF(t, D)$ adalah jumlah dokumen dalam korpus $D$ yang mengandung term $t$.
+
+#### Cosine Similarity
+
+Cosine similarity adalah metrik yang digunakan untuk mengukur kemiripan antara dua vektor yang bukan nol. Dalam konteks pemfilteran berbasis konten, setiap anime dapat direpresentasikan sebagai sebuah vektor, di mana setiap dimensi berhubungan dengan sebuah *term* (misalnya, genre, nama karakter, kata kunci plot) dan nilai dalam dimensi tersebut adalah nilai TF-IDF untuk *term* tersebut.
+
+Untuk merekomendasikan judul anime kepada pengguna, sistem menghitung kemiripan kosinus antara vektor yang mewakili preferensi pengguna (berdasarkan anime yang telah mereka tonton atau nilai) dan vektor yang mewakili setiap anime dalam database. Nilai kemiripan kosinus berkisar dari 0 (sama sekali tidak berbeda) hingga 1 (vektor yang identik).
+
+Sistem rekomendasi kemudian mengurutkan judul-judul anime berdasarkan nilai kemiripan kosinus dengan vektor preferensi pengguna. Anime dengan nilai kemiripan kosinus yang lebih tinggi dianggap lebih relevan dan direkomendasikan kepada pengguna.
+
+Berikut adalah rumus untuk menghitung cosine similarity antara dua vektor $A$ dan $B$:
+
+$$ \text{Cosine Similarity} = \frac{\mathbf{A} \cdot \mathbf{B}}{\|\mathbf{A}\| \|\mathbf{B}\|}
+
+= \frac{\sum_{i=1}^{n} A_i B_i}{\sqrt{\sum_{i=1}^{n} A_i^2} \sqrt{\sum_{i=1}^{n} B_i^2}} $$
+
+Dimana:
+- $\mathbf{A} \cdot \mathbf{B}$ adalah hasil perkalian titik antara vektor $A$ dan $B$.
+- $\|\mathbf{A}\|$ dan $\|\mathbf{B}\|$ adalah norma dari vektor $A$ dan $B$.
+
+#### Kelebihan dan Kekurangan Content-Based Filtering
+
+Kelebihan dari content-based filtering adalah:
+- Penanganan item baru: Pemfilteran berbasis konten dapat secara efektif menangani item baru, karena tidak bergantung pada data pengguna atau teknik pemfilteran kolaboratif. Hal ini memungkinkannya untuk memberikan rekomendasi untuk judul anime baru yang mungkin belum pernah dinilai atau ditonton oleh pengguna.
+- Mengurangi masalah cold-start: Karena pemfilteran berbasis konten tidak bergantung pada data pengguna, pemfilteran ini dapat memberikan rekomendasi meskipun data pengguna yang tersedia terbatas, sehingga mengurangi masalah cold-start.
+- Explainability: Pemfilteran berbasis konten dapat memberikan penjelasan untuk rekomendasinya, karena didasarkan pada fitur eksplisit dari konten. Hal ini dapat membantu pengguna memahami mengapa rekomendasi tertentu dibuat dan meningkatkan kepercayaan mereka pada sistem.
+
+Sedangkan, kekurangan dari content-based filtering adalah:
+- Kurangnya unsur kebetulan: Karena penyaringan berbasis konten bergantung pada fitur eksplisit dari konten, penyaringan ini mungkin tidak dapat menangkap rekomendasi yang tidak terduga atau tidak disengaja yang dapat ditemukan melalui teknik penyaringan kolaboratif.
+- Skalabilitas terbatas: Pemfilteran berbasis konten dapat menjadi mahal secara komputasi ketika berurusan dengan kumpulan data yang besar, karena memerlukan pemrosesan dan analisis fitur setiap item.
+- Penanganan preferensi pengguna yang terbatas: Pemfilteran berbasis konten mungkin tidak dapat secara efektif menangkap nuansa dalam preferensi pengguna, seperti perubahan preferensi dari waktu ke waktu atau pengaruh faktor sosial.
+
+#### Implementasi Content-Based Filtering
+
+TODO: next
+
+### Collaborative Filtering
+
+#### XXXXXx
+
+#### Kelebihan dan Kekurangan Collaborative Filtering
+
+#### Implementasi Collaborative Filtering
+
+
 
 ## Evaluation
 Pada bagian ini Anda perlu menyebutkan metrik evaluasi yang digunakan. Kemudian, jelaskan hasil proyek berdasarkan metrik evaluasi tersebut.
